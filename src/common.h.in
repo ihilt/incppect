@@ -11,3 +11,10 @@ constexpr auto kIncppect_js = R"js(
 @src_incppect_js@
 
 )js";
+
+// the main js module
+constexpr auto kWorker_js = R"js(
+
+@src_worker_js@
+
+)js";

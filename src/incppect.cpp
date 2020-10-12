@@ -248,6 +248,8 @@ struct Incppect<SSL>::Impl {
         (*app).template ws<PerSocketData>("/incppect", std::move(wsBehaviour)
         ).get("/incppect.js", [](auto *res, auto * /*req*/) {
                 res->end(kIncppect_js);
+        }).get("/worker.js", [](auto *res, auto * /*req*/) {
+            res->end(kWorker_js);
         }).get("/*", [this](auto *res, auto *req) {
             std::string url = std::string(req->getUrl());
 

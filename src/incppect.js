@@ -5,6 +5,10 @@ var incppect = {
     // default ws url - change to fit your needs
     ws_uri: 'ws://' + window.location.hostname + ':' + window.location.port + '/incppect',
 
+    // webworker which receives data from ws
+    worker: null,
+    ws_ready: false,
+
     // vars data
     nvars: 0,
     vars_map: {},
@@ -39,28 +43,52 @@ var incppect = {
         var onmessage = this.onmessage.bind(this);
         var onerror = this.onerror.bind(this);
 
-        this.ws = new WebSocket(this.ws_uri);
-        this.ws.binaryType = 'arraybuffer';
-        this.ws.onopen = function(evt) { onopen(evt) };
-        this.ws.onclose = function(evt) { onclose(evt) };
-        this.ws.onmessage = function(evt) { onmessage(evt) };
-        this.ws.onerror = function(evt) { onerror(evt) };
+        //this.ws = new WebSocket(this.ws_uri);
+        //this.ws.binaryType = 'arraybuffer';
+        //this.ws.onopen = function(evt) { onopen(evt) };
+        //this.ws.onclose = function(evt) { onclose(evt) };
+        //this.ws.onmessage = function(evt) { onmessage(evt) };
+        //this.ws.onerror = function(evt) { onerror(evt) };
 
         this.t_start_ms = this.timestamp();
         this.t_requests_last_update_ms = this.timestamp() - this.k_requests_update_freq_ms;
 
         window.requestAnimationFrame(this.loop.bind(this));
+
+        this.worker = new Worker('worker.js');
+        this.worker.onmessage = function(evt) {
+            switch(evt.data.type) {
+                case 'message':
+                    onmessage(evt.data);
+                    break;
+                case 'error':
+                    onerror(evt.data);
+                    break;
+                case 'close':
+                    onclose(evt.data);
+                    break;
+                case 'open':
+                    onopen(evt.data);
+                    break;
+                default:
+                    break;
+            }
+        };
     },
 
     loop: function() {
-        if (this.ws == null) {
+        if (this.worker == null) {
             if (this.k_auto_reconnect) {
                 setTimeout(this.init.bind(this), 1000);
             }
             return;
         }
 
-        if (this.ws.readyState !== this.ws.OPEN) {
+        //if (this.ws.readyState !== this.ws.OPEN) {
+        //    window.requestAnimationFrame(this.loop.bind(this));
+        //    return;
+        //}
+        if (!this.ws_ready) {
             window.requestAnimationFrame(this.loop.bind(this));
             return;
         }
@@ -208,7 +236,8 @@ var incppect = {
         data[0] = 4;
         data.set(enc.encode(msg), 4);
         data[4 + msg.length] = 0;
-        this.ws.send(data);
+        //this.ws.send(data);
+        this.worker.postMessage(data);
     },
 
     send_var_to_id_map: function() {
@@ -225,7 +254,8 @@ var incppect = {
         data[0] = 1;
         data.set(enc.encode(msg), 4);
         data[4 + msg.length] = 0;
-        this.ws.send(data);
+        //this.ws.send(data);
+        this.worker.postMessage(data);
     },
 
     send_requests: function() {
@@ -244,16 +274,19 @@ var incppect = {
         if (same) {
             var data = new Int32Array(1);
             data[0] = 3;
-            this.ws.send(data);
+            //this.ws.send(data);
+            this.worker.postMessage(data);
         } else {
             var data = new Int32Array(this.requests.length + 1);
             data.set(new Int32Array(this.requests), 1);
             data[0] = 2;
-            this.ws.send(data);
+            //this.ws.send(data);
+            this.worker.postMessage(data);
         }
     },
 
     onopen: function(evt) {
+        this.ws_ready = true;
     },
 
     onclose: function(evt) {
@@ -264,6 +297,7 @@ var incppect = {
         this.requests = null;
         this.requests_old = null;
         this.ws = null;
+        this.worker = null;
     },
 
     onmessage: function(evt) {

@@ -1,4 +1,6 @@
 file(READ "incppect.js" src_incppect_js)
+file(READ "worker.js" src_worker_js)
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/common.h.in ${CMAKE_CURRENT_SOURCE_DIR}/common.h @ONLY)
 
 add_library(incppect SHARED incppect.cpp)
