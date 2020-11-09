@@ -35,7 +35,7 @@ struct Incppect<SSL>::Impl {
     struct Request {
         int64_t tLastUpdated_ms = -1;
         int64_t tLastRequested_ms = -1;
-        int64_t tMinUpdate_ms = 16;
+        int64_t tMinUpdate_ms = 1;
         int64_t tLastRequestTimeout_ms = 3000;
 
         TIdxs idxs;
