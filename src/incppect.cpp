@@ -524,9 +524,11 @@ void Incppect<SSL>::run(Parameters parameters) {
 template <bool SSL>
 void Incppect<SSL>::stop() {
     m_impl->do_shutdown = true;
-    m_impl->mainLoop->defer([this]() {
-        us_listen_socket_close(0, m_impl->listenSocket);
-    });
+    if (m_impl->mainLoop != nullptr) {
+        m_impl->mainLoop->defer([this]() {
+            us_listen_socket_close(0, m_impl->listenSocket);
+        });
+    }
 }
 
 template <bool SSL>
