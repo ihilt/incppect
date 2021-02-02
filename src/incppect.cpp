@@ -112,10 +112,6 @@ struct Incppect<SSL>::Impl {
             }
         };
         wsBehaviour.message = [this](auto * ws, std::string_view message, uWS::OpCode /*opCode*/) {
-            if (do_shutdown) {
-                ws->end(0);
-                return;
-            }
             rxTotal_bytes += message.size();
             if (message.size() < sizeof(int)) {
                 return;
@@ -485,7 +481,7 @@ struct Incppect<SSL>::Impl {
     int32_t txTotal_bytes = 0;
     int32_t rxTotal_bytes = 0;
 
-    bool do_shutdown = false;
+    bool stopping = false;
 
     std::map<TPath, int> pathToGetter;
     std::vector<TGetter> getters;
@@ -523,10 +519,11 @@ void Incppect<SSL>::run(Parameters parameters) {
 
 template <bool SSL>
 void Incppect<SSL>::stop() {
-    if (m_impl->do_shutdown) {
-        return;
+    if (m_impl->stopping) { return; }
+    m_impl->stopping = true;
+    for (auto sd : m_impl->socketData) {
+        sd.second->ws->end(0);
     }
-    m_impl->do_shutdown = true;
     if (m_impl->mainLoop != nullptr) {
         m_impl->mainLoop->defer([this]() {
             us_listen_socket_close(0, m_impl->listenSocket);
