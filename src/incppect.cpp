@@ -521,11 +521,11 @@ template <bool SSL>
 void Incppect<SSL>::stop() {
     if (m_impl->stopping) { return; }
     m_impl->stopping = true;
-    for (auto sd : m_impl->socketData) {
-        sd.second->ws->end(0);
-    }
     if (m_impl->mainLoop != nullptr) {
         m_impl->mainLoop->defer([this]() {
+            for (auto sd : m_impl->socketData) {
+                sd.second->ws->close();
+            }
             us_listen_socket_close(0, m_impl->listenSocket);
         });
     }
