@@ -524,7 +524,11 @@ void Incppect<SSL>::stop() {
     if (m_impl->mainLoop != nullptr) {
         m_impl->mainLoop->defer([this]() {
             for (auto sd : m_impl->socketData) {
-                sd.second->ws->close();
+                if (sd.second->mainLoop != nullptr) {
+                    sd.second->mainLoop->defer([sd]() {
+                        sd.second->ws->close();
+                    });
+		}
             }
             us_listen_socket_close(0, m_impl->listenSocket);
         });
