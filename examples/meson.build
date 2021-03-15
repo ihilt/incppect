@@ -1,0 +1,5 @@
+  subdir('hello-browser')
+  subdir('hello-browser-ssl')
+  subdir('client-info')
+  subdir('balls2d')
+  subdir('balls3d')

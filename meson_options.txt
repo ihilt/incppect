@@ -1,0 +1,2 @@
+option('INCPPECT_DEBUG', type : 'boolean', value : true, description : 'Enable debug messages in the incppect service')
+option('INCPPECT_NO_SSL', type : 'boolean', value : false, description : 'Disable SSL support')
